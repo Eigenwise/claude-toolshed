@@ -1,0 +1,16 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.idea/
+.vscode/
+
+# Node (only relevant if a plugin ever adds tooling)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Logs
+*.log

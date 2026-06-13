@@ -1,0 +1,34 @@
+{
+  "name": "claude-toolshed",
+  "owner": {
+    "name": "Eigenwise",
+    "email": "kenny.vaneetvelde@gmail.com"
+  },
+  "description": "Eigenwise's toolshed of Claude Code plugins.",
+  "version": "1.0.0",
+  "plugins": [
+    {
+      "name": "codebase-mapper",
+      "source": "./plugins/codebase-mapper",
+      "description": "Self-maintaining, language-agnostic codebase map. Generates atomic docs in .claude/.codebase-info/, auto-loads them into every session, and keeps them in sync as the code changes. Works on greenfield or existing projects, any stack.",
+      "version": "2.0.0",
+      "author": {
+        "name": "Eigenwise"
+      },
+      "homepage": "https://github.com/Eigenwise/claude-toolshed/tree/main/plugins/codebase-mapper",
+      "repository": "https://github.com/Eigenwise/claude-toolshed",
+      "license": "MIT",
+      "category": "documentation",
+      "keywords": [
+        "documentation",
+        "codebase",
+        "mapping",
+        "context",
+        "grounding",
+        "onboarding",
+        "architecture",
+        "self-maintaining"
+      ]
+    }
+  ]
+}

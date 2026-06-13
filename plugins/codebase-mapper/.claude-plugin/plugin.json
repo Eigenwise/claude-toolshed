@@ -1,0 +1,22 @@
+{
+  "name": "codebase-mapper",
+  "version": "2.0.0",
+  "description": "Self-maintaining, language-agnostic codebase map. Generates atomic docs in .claude/.codebase-info/, auto-loads them into every session (CLAUDE.md import + SessionStart hook), and keeps them in sync as the code changes. Works on greenfield or existing projects, any stack.",
+  "author": {
+    "name": "Eigenwise",
+    "email": "kenny.vaneetvelde@gmail.com"
+  },
+  "homepage": "https://github.com/Eigenwise/claude-toolshed/tree/main/plugins/codebase-mapper",
+  "repository": "https://github.com/Eigenwise/claude-toolshed",
+  "license": "MIT",
+  "keywords": [
+    "documentation",
+    "codebase",
+    "mapping",
+    "context",
+    "grounding",
+    "onboarding",
+    "architecture",
+    "self-maintaining"
+  ]
+}
