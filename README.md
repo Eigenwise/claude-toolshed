@@ -39,9 +39,7 @@ details in the [plugin README](./plugins/codebase-mapper).
 
 ## About
 
-Built by **Kenny Vaneetvelde** — 15+ years building software, now deep in AI. I make open source
-(most notably [Atomic Agents](https://github.com/eigenwise/atomic-agents)) and write about building
-real things with AI.
+Built by **Kenny Vaneetvelde (AKA Eigenwise)**
 
 - 🌐 Writing & projects — **[eigenwise.io](https://eigenwise.io)**
 - 𝕏 — [@Kenny_V](https://twitter.com/Kenny_V)
