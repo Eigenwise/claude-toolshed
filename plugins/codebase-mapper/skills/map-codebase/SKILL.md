@@ -17,16 +17,16 @@ document covers one aspect of the project, so the map stays easy to read, update
 map is written for the next Claude session (and the next human): it is grounding context, not
 marketing.
 
-This skill also **wires the map into context automatically** so you don't have to remember it:
-1. a managed block in the project's `CLAUDE.md` (loaded natively every session), and
-2. a `SessionStart` hook shipped by this plugin (a fallback that injects the map when the
-   `CLAUDE.md` block is absent).
+Loading is automatic and you don't have to wire anything up: this plugin ships a `UserPromptSubmit`
+hook that re-injects the map on every prompt, so Claude keeps consulting and updating it as work
+goes on. **Never edit `CLAUDE.md`.** The hook is the only loading mechanism; leave `CLAUDE.md`
+alone. Your job is just to write the docs in `.claude/.codebase-info/`.
 
 ## Output
 
 ```
 .claude/.codebase-info/
-├── INDEX.md                # Navigation hub + how-to-use; this is what gets auto-loaded
+├── INDEX.md                # Navigation hub + how-to-use; the hook injects this every prompt
 ├── architecture.md         # System overview, components, boundaries, data flow
 ├── tech-landscape.md       # Languages, frameworks, runtimes, infra, source-of-truth files
 ├── directory-structure.md  # Annotated folder tree
@@ -58,11 +58,11 @@ Get the lay of the land first, then pick a path:
 
 Then branch:
 
-- **Existing project with real code → full mapping.** Continue with Steps 1–9.
+- **Existing project with real code → full mapping.** Continue with Steps 1–8.
 - **Greenfield (empty repo, scaffold only, or just a spec/README) → seed mapping.** Jump to the
-  **Greenfield projects** section below, then do Steps 8–9.
+  **Greenfield projects** section below, then do Step 8.
 - **Large codebase (hundreds+ of source files) → parallelize.** See **Large codebases** below,
-  then Steps 7–9.
+  then Steps 7–8.
 
 Also check today's actual date (it's provided in the session context, or run `date`) so the
 "Last Updated" stamps are real, not placeholders.
@@ -116,40 +116,11 @@ Create each applicable file in `.claude/.codebase-info/` using the templates in
 - Use concrete file paths (`src/auth/guard.ts`), not vague descriptions.
 - Prefer tables for structured data (routes, modules, deps) and ASCII/Mermaid for architecture.
 - Keep each doc self-contained but cross-link related docs.
-- **Keep `INDEX.md` compact** — it's the doc that gets auto-loaded into every session. It should
+- **Keep `INDEX.md` compact.** The hook injects it into context on every prompt, so it should
   summarize the project in a few lines and link out to the detailed docs, which Claude reads on
   demand. Include the short "How to use / How to maintain this map" section from the template.
 
-### Step 8 — Wire up auto-loading (the CLAUDE.md "belt")
-
-Add or refresh a managed block in the project's root `CLAUDE.md` so the map loads natively every
-session. Idempotency rule: if `CLAUDE.md` already contains the markers, replace everything between
-them; otherwise append the block (creating `CLAUDE.md` if it doesn't exist). Use **exactly** these
-markers and the `@`-import line (the markers let the plugin's hook detect the block and avoid
-double-injecting):
-
-```markdown
-<!-- codebase-mapper:start -->
-## Codebase Map
-
-This project keeps a maintained, atomic codebase map in `.claude/.codebase-info/`.
-
-- **Before** non-trivial work, read the relevant doc(s). Start at the index: @.claude/.codebase-info/INDEX.md
-- **After** changes that affect architecture, structure, dependencies, data model, entry points,
-  APIs/events, or conventions, refresh the map with the `update-codebase-map` skill
-  (`/codebase-mapper:update-codebase-map`).
-- Keep `.claude/.codebase-info/` committed so the whole team — and every Claude session — shares
-  the same grounding.
-
-<!-- Managed by the codebase-mapper plugin. Edit the docs in .claude/.codebase-info/, not this block. -->
-<!-- codebase-mapper:end -->
-```
-
-Keep the `@.claude/.codebase-info/INDEX.md` line on its own line and **outside** any code fence, or
-the import won't resolve. (Claude Code shows a one-time approval prompt the first time it imports a
-file; if declined, the surrounding text and the plugin's hook still surface the map.)
-
-### Step 9 — Record state
+### Step 8 — Record state
 
 Write `.claude/.codebase-info/.map-state.json` so `update-codebase-map` can detect staleness
 precisely:
@@ -157,7 +128,7 @@ precisely:
 ```json
 {
   "tool": "codebase-mapper",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "mappedAt": "YYYY-MM-DD",
   "gitCommit": "<full HEAD SHA, or null if not a git repo>",
   "documents": ["architecture.md", "tech-landscape.md", "..."]
@@ -167,9 +138,9 @@ precisely:
 Get the SHA with `git rev-parse HEAD` (use `null` if the project isn't a git repo). List exactly the
 documents you created.
 
-Finally, tell the user the map is ready, remind them to **commit `.claude/.codebase-info/` and the
-`CLAUDE.md` block** so their team and every future session share it, and note that it will now load
-automatically.
+Finally, tell the user the map is ready, remind them to **commit `.claude/.codebase-info/`** so their
+team and every future session share it, and note that the plugin's hook will surface it
+automatically from now on.
 
 ## Greenfield projects
 
@@ -181,8 +152,7 @@ A brand-new or empty project has little to map yet — so seed the map with *int
 3. Create a **lean** map: `INDEX.md`, `architecture.md` (goals + intended design), `tech-landscape.md`
    (chosen/intended stack), `directory-structure.md` (planned layout), and `onboarding.md`. Mark it
    clearly as a greenfield seed that will grow.
-4. Do Steps 8–9 (wire up `CLAUDE.md`, write state). From here, `update-codebase-map` fills in the
-   rest as real code lands.
+4. Do Step 8 (write state). From here, `update-codebase-map` fills in the rest as real code lands.
 
 ## Large codebases
 
@@ -201,6 +171,8 @@ For hundreds or thousands of source files, don't try to read everything serially
 - **Accuracy over completeness.** Every path and reference you write must exist. Don't invent.
 - **Concrete, not abstract.** Real file paths, real command names, real table/route names.
 - **Atomic + linked.** One concern per file; cross-reference rather than duplicate.
+- **Never touch `CLAUDE.md`.** The plugin's hook handles loading. Do not add, edit, or remove
+  anything in `CLAUDE.md` (or `CLAUDE.local.md`).
 - **Respect ignore rules.** Never document `node_modules/`, `vendor/`, build output, or secrets.
 - **Don't leak secrets.** Note that config exists and where, never actual credential values.
 
@@ -209,9 +181,9 @@ For hundreds or thousands of source files, don't try to read everything serially
 - [ ] `.claude/.codebase-info/` created with `INDEX.md` + all applicable atomic docs
 - [ ] `INDEX.md` is compact, links every created doc, and includes the how-to-use/maintain section
 - [ ] Every doc has a real `Last Updated` date and verified file paths
-- [ ] Managed block written to `CLAUDE.md` with the exact markers and `@`-import line
 - [ ] `.map-state.json` written with date, HEAD SHA (or null), and the document list
-- [ ] User reminded to commit `.claude/.codebase-info/` and the `CLAUDE.md` block
+- [ ] `CLAUDE.md` left untouched
+- [ ] User reminded to commit `.claude/.codebase-info/`
 
 ## References
 

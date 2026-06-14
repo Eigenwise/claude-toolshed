@@ -26,7 +26,7 @@ Then run `/reload-plugins` (or restart Claude Code) and you're set. It's a publi
 On any non-trivial repo, a fresh Claude session starts blind. It greps for the architecture, hunts down the entry points, and re-learns your conventions before it can do anything useful, then starts from scratch again the next session. codebase-mapper does that work **once** and keeps it:
 
 - It writes a set of small, atomic Markdown docs under `.claude/.codebase-info/` (architecture, modules, entry points, patterns, dependencies, and so on).
-- It loads the map into every session two ways, a `CLAUDE.md` import and a `SessionStart` hook, so the context is there without re-injecting it on every prompt.
+- A bundled `UserPromptSubmit` hook re-injects the map on every prompt, so it stays in context deep into a long session and Claude keeps consulting and updating it as you work.
 - A companion skill refreshes only the docs your changes actually touch, so the map stays current.
 - It works on any language or stack, and on both new and existing projects.
 

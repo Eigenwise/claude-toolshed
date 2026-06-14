@@ -1,25 +1,22 @@
 #!/usr/bin/env node
 /**
- * codebase-mapper - SessionStart context hook
+ * codebase-mapper - UserPromptSubmit context hook
  *
- * Injects the project's codebase map into the session, when one exists.
+ * Re-injects the project's codebase map on every user prompt, when a map exists.
  *
- * Belt & suspenders. The "belt" is a managed block in the project's CLAUDE.md
- * (written by the map-codebase skill) that points to - and @imports - the map.
- * This hook is the "suspenders". To stay useful without duplicating the belt:
+ * This runs on UserPromptSubmit (not SessionStart) on purpose. A once-per-session
+ * injection gets buried as the conversation grows, and Claude stops consulting the
+ * map. Re-injecting on every prompt keeps it salient, so Claude actually reads the
+ * relevant docs before working and refreshes them afterward.
  *
- *   - It ALWAYS injects a short operating protocol. This is cheap and keeps the
- *     "read before / update after" habit salient at every session start,
- *     including after context compaction.
- *   - It injects the FULL index ONLY when the CLAUDE.md managed block is absent
- *     (the belt isn't carrying the content). That way the map still reaches
- *     Claude with no CLAUDE.md, a declined @import, or a hand-removed block.
+ * Each prompt it injects a short operating instruction plus INDEX.md (the compact
+ * hub). The detailed atomic docs are read on demand. It does not touch CLAUDE.md.
  *
  * Design constraints:
- *   - No external dependencies (Node stdlib only). Node ships with most Claude
- *     Code installs; if it is missing, the CLAUDE.md belt covers the map.
+ *   - No external dependencies (Node stdlib only).
  *   - Cross-platform (Windows / macOS / Linux).
- *   - Never breaks a session: any error -> exit 0 with no output.
+ *   - Stays silent when there is no map for the project.
+ *   - Never breaks a prompt: any error -> exit 0 with no output.
  */
 
 'use strict';
@@ -28,9 +25,7 @@ const fs = require('fs');
 const path = require('path');
 
 const MAP_DIR_PARTS = ['.claude', '.codebase-info'];
-const DISPLAY_DIR = '.claude/.codebase-info';
 const INDEX_REL = '.claude/.codebase-info/INDEX.md';
-const MANAGED_MARKER = 'codebase-mapper:start';
 
 function readStdinCwd() {
   // Hook input arrives as JSON on stdin; cwd is a fallback for project dir.
@@ -41,14 +36,6 @@ function readStdinCwd() {
     return data && typeof data.cwd === 'string' ? data.cwd : '';
   } catch (_) {
     return '';
-  }
-}
-
-function fileIncludes(file, needle) {
-  try {
-    return fs.readFileSync(file, 'utf8').includes(needle);
-  } catch (_) {
-    return false;
   }
 }
 
@@ -66,29 +53,20 @@ function main() {
     process.exit(0);
   }
 
-  // Is the CLAUDE.md "belt" already carrying the map?
-  const beltActive =
-    fileIncludes(path.join(projectDir, 'CLAUDE.md'), MANAGED_MARKER) ||
-    fileIncludes(path.join(projectDir, 'CLAUDE.local.md'), MANAGED_MARKER);
-
-  let context =
+  const context =
     '=== CODEBASE MAP (codebase-mapper) ===\n' +
-    'This project has a maintained codebase map in ' + DISPLAY_DIR + '/.\n' +
-    '- Before non-trivial work, read the relevant doc(s). The index is ' +
-    INDEX_REL + '.\n' +
-    '- After changes affecting architecture, structure, dependencies, data ' +
-    'model, entry points, APIs/events, or conventions, refresh it with the ' +
-    'update-codebase-map skill (/codebase-mapper:update-codebase-map).\n';
-
-  if (!beltActive) {
-    context +=
-      '\n--- ' + INDEX_REL + ' ---\n' + indexContent.trim() + '\n';
-  }
+    'This repository has a maintained codebase map in .claude/.codebase-info/. ' +
+    'Before non-trivial work, read the relevant doc(s) for the area you are ' +
+    'changing. After changes affecting architecture, directory structure, ' +
+    'dependencies, the data model, entry points, APIs/events, or conventions, ' +
+    'refresh it with the update-codebase-map skill ' +
+    '(/codebase-mapper:update-codebase-map).\n\n' +
+    '--- ' + INDEX_REL + ' ---\n' + indexContent.trim() + '\n';
 
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: {
-        hookEventName: 'SessionStart',
+        hookEventName: 'UserPromptSubmit',
         additionalContext: context,
       },
     })

@@ -79,15 +79,7 @@ Handle structural shifts:
 - **Removed area** (e.g. a service or integration is gone): delete the now-empty doc (and its
   `INDEX.md` row), or prune the stale sections from a shared doc. Remove orphaned references.
 
-### Step 5 — Keep the wiring consistent
-
-- If the project name or one-line description changed, update both `INDEX.md` and the managed block
-  in `CLAUDE.md` (replace the content between the `<!-- codebase-mapper:start -->` and
-  `<!-- codebase-mapper:end -->` markers).
-- If the `CLAUDE.md` managed block is missing entirely, re-add it (see Step 8 of the `map-codebase`
-  skill for the exact block).
-
-### Step 6 — Re-record state
+### Step 5 — Re-record state
 
 Rewrite `.claude/.codebase-info/.map-state.json`:
 - `mappedAt`: today's date
@@ -105,12 +97,14 @@ commit the changes so the team and future sessions stay in sync.
   gone.
 - **No churn for churn's sake.** If nothing meaningful changed, say so and update only the
   `mappedAt`/`gitCommit` in state (or nothing at all).
+- **Never touch `CLAUDE.md`.** The plugin's hook handles loading; the map lives entirely in
+  `.claude/.codebase-info/`. Leave `CLAUDE.md` (and `CLAUDE.local.md`) alone.
 
 ## Success criteria
 
 - [ ] Changes since the last map detected (via stored commit, or mtime fallback)
 - [ ] Only affected documents edited; new areas documented; removed areas pruned
 - [ ] `INDEX.md` reflects any added/removed docs
-- [ ] `CLAUDE.md` managed block consistent (and present)
 - [ ] `Last Updated` dates current on every touched doc
+- [ ] `CLAUDE.md` left untouched
 - [ ] `.map-state.json` rewritten with today's date, current commit, and document list
