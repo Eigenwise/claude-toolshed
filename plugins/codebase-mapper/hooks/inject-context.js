@@ -9,8 +9,10 @@
  * map. Re-injecting on every prompt keeps it salient, so Claude actually reads the
  * relevant docs before working and refreshes them afterward.
  *
- * Each prompt it injects a short operating instruction plus INDEX.md (the compact
- * hub). The detailed atomic docs are read on demand. It does not touch CLAUDE.md.
+ * Each prompt it injects a forceful MANDATORY_INSTRUCTION block plus INDEX.md (the
+ * compact hub). The block requires Claude to read the relevant docs before
+ * exploring, then run a documentation check after code changes. The detailed atomic
+ * docs are read on demand. It does not touch CLAUDE.md.
  *
  * Design constraints:
  *   - No external dependencies (Node stdlib only).
@@ -54,13 +56,23 @@ function main() {
   }
 
   const context =
-    '=== CODEBASE MAP (codebase-mapper) ===\n' +
-    'This repository has a maintained codebase map in .claude/.codebase-info/. ' +
-    'Before non-trivial work, read the relevant doc(s) for the area you are ' +
-    'changing. After changes affecting architecture, directory structure, ' +
-    'dependencies, the data model, entry points, APIs/events, or conventions, ' +
-    'refresh it with the update-codebase-map skill ' +
-    '(/codebase-mapper:update-codebase-map).\n\n' +
+    '<MANDATORY_INSTRUCTION>\n' +
+    'This repository has a maintained codebase map in .claude/.codebase-info/.\n\n' +
+    'BEFORE starting any task, you MUST read the relevant doc file(s) from ' +
+    '.claude/.codebase-info/ BEFORE exploring the codebase.\n\n' +
+    'AFTER completing any task that modifies code, you MUST:\n' +
+    '1. List which files you modified\n' +
+    '2. Assess whether the changes affect the codebase documentation ' +
+    '(architecture, directory structure, dependencies, the data model, entry ' +
+    'points, APIs/events, or conventions)\n' +
+    '3. End with: "Documentation check complete." followed by either:\n' +
+    '   - "Running /codebase-mapper:update-codebase-map to update ' +
+    'documentation." and then INVOKE the skill, OR\n' +
+    '   - "No documentation updates needed because [reason]"\n\n' +
+    'If no code was modified, end with: "No code changes were made, so ' +
+    'documentation review is not applicable."\n' +
+    '</MANDATORY_INSTRUCTION>\n\n' +
+    '=== CODEBASE DOCUMENTATION ===\n\n' +
     '--- ' + INDEX_REL + ' ---\n' + indexContent.trim() + '\n';
 
   process.stdout.write(
