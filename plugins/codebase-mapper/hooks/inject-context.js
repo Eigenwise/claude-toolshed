@@ -10,9 +10,9 @@
  * relevant docs before working and refreshes them afterward.
  *
  * Each prompt it injects a forceful MANDATORY_INSTRUCTION block plus INDEX.md (the
- * compact hub). The block requires Claude to read the relevant docs before
- * exploring, then run a documentation check after code changes. The detailed atomic
- * docs are read on demand. It does not touch CLAUDE.md.
+ * compact hub). The block requires Claude to state which docs it will consult and
+ * read them before exploring, then run a documentation check after code changes.
+ * The detailed atomic docs are read on demand. It does not touch CLAUDE.md.
  *
  * Design constraints:
  *   - No external dependencies (Node stdlib only).
@@ -58,8 +58,10 @@ function main() {
   const context =
     '<MANDATORY_INSTRUCTION>\n' +
     'This repository has a maintained codebase map in .claude/.codebase-info/.\n\n' +
-    'BEFORE starting any task, you MUST read the relevant doc file(s) from ' +
-    '.claude/.codebase-info/ BEFORE exploring the codebase.\n\n' +
+    'BEFORE starting any task, you MUST state which doc file(s) from ' +
+    '.claude/.codebase-info/ you are going to consult (e.g. "Consulting the ' +
+    'codebase map: reading <file(s)> for this work."), then read them BEFORE ' +
+    'exploring the codebase.\n\n' +
     'AFTER completing any task that modifies code, you MUST:\n' +
     '1. List which files you modified\n' +
     '2. Assess whether the changes affect the codebase documentation ' +
