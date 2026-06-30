@@ -1,5 +1,5 @@
 {
-  "name": "claude-toolshed",
+  "name": "eigenwise-toolshed",
   "owner": {
     "name": "Eigenwise",
     "email": "kenny.vaneetvelde@gmail.com"
@@ -15,8 +15,8 @@
       "author": {
         "name": "Eigenwise"
       },
-      "homepage": "https://github.com/Eigenwise/claude-toolshed/tree/main/plugins/codebase-mapper",
-      "repository": "https://github.com/Eigenwise/claude-toolshed",
+      "homepage": "https://github.com/Eigenwise/eigenwise-toolshed/tree/main/plugins/codebase-mapper",
+      "repository": "https://github.com/Eigenwise/eigenwise-toolshed",
       "license": "MIT",
       "category": "documentation",
       "keywords": [
@@ -38,8 +38,8 @@
       "author": {
         "name": "Eigenwise"
       },
-      "homepage": "https://github.com/Eigenwise/claude-toolshed/tree/main/plugins/live-rules",
-      "repository": "https://github.com/Eigenwise/claude-toolshed",
+      "homepage": "https://github.com/Eigenwise/eigenwise-toolshed/tree/main/plugins/live-rules",
+      "repository": "https://github.com/Eigenwise/eigenwise-toolshed",
       "license": "MIT",
       "category": "workflow",
       "keywords": [
